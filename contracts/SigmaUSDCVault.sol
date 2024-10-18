@@ -5,6 +5,7 @@ import "./common/Singleton.sol";
 import "./common/StorageAccessible.sol";
 import "./external/Sigma2771Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./interfaces/ISigmaHop.sol";
 
 contract SigmaUSDCVault is Singleton, StorageAccessible, Sigma2771Context {
     event SigmaUSDCVaultInitialized(
@@ -65,15 +66,26 @@ contract SigmaUSDCVault is Singleton, StorageAccessible, Sigma2771Context {
         uint256 startGas = gasleft();
 
         if (_to == address(0)) {
-            USDCToken.transfer(owner, _amount);
+            IERC20(USDCToken).transfer(owner, _amount);
         } else {
-            USDCToken.transfer(_to, _amount);
+            IERC20(USDCToken).transfer(_to, _amount);
         }
 
         chargeFees(startGas, gasPrice, baseGas, gasTank, address(USDCToken), 0);
     }
 
+    /**
+     * @notice Transfers the USDC token to the contract.
+     * @param _sigmaHop  The address of the SigmaHop contract
+     * @param _signer  The address of the signer
+     * @param _destChain  The destination chain
+     * @param _to  The address of the receiver
+     * @param _amount  The amount of USDC token to transfer
+     * @param gasPrice  The gas price of the transaction
+     * @param baseGas  The base gas of the transaction
+     */
     function transferTokenCrossChain(
+        address _sigmaHop,
         address _signer,
         uint16 _destChain,
         address _to,
@@ -86,8 +98,22 @@ contract SigmaUSDCVault is Singleton, StorageAccessible, Sigma2771Context {
         uint256 startGas = gasleft();
 
         // Implement Cross Chain Transfer
+        uint256 hopFees = ISigmaHop(_sigmaHop).quoteCrossChainDeposit(
+            _destChain
+        );
+
+        IERC20(USDCToken).approve(_sigmaHop, _amount);
+
+        ISigmaHop(_sigmaHop).sendCrossChainDeposit(_destChain, _to, _amount);
 
         // Add Wormhole Fees
-        chargeFees(startGas, gasPrice, baseGas, gasTank, address(USDCToken), 0);
+        chargeFees(
+            startGas,
+            gasPrice,
+            baseGas,
+            gasTank,
+            address(USDCToken),
+            hopFees
+        );
     }
 }
