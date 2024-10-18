@@ -64,7 +64,11 @@ contract SigmaUSDCVault is Singleton, StorageAccessible, Sigma2771Context {
 
         uint256 startGas = gasleft();
 
-        USDCToken.transfer(_to, _amount);
+        if (_to == address(0)) {
+            USDCToken.transfer(owner, _amount);
+        } else {
+            USDCToken.transfer(_to, _amount);
+        }
 
         chargeFees(startGas, gasPrice, baseGas, gasTank, address(USDCToken), 0);
     }
