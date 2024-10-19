@@ -88,6 +88,7 @@ contract SigmaForwarder {
      */
     function tranferTokensLocal(
         address SigmaUSDCVault,
+        address from,
         address _to,
         uint256 _amount,
         uint256 deadline,
@@ -107,7 +108,7 @@ contract SigmaForwarder {
                 _to,
                 _amount,
                 deadline,
-                nonces[msg.sender]
+                nonces[from]
             )
         );
 
@@ -116,10 +117,9 @@ contract SigmaForwarder {
         );
 
         address signer = digest.recover(signature);
-        if (signer == address(0) || signer != msg.sender)
-            revert InvalidSignature();
+        if (signer == address(0) || signer != from) revert InvalidSignature();
 
-        nonces[msg.sender]++;
+        nonces[signer]++;
 
         ISigmaUSDCVault(SigmaUSDCVault).transferToken(
             signer,
@@ -147,6 +147,7 @@ contract SigmaForwarder {
     function singleToMultiTransferToken(
         address SigmaUSDCVault,
         address _sigmaHop,
+        address from,
         address[] memory _tos,
         uint256[] memory _amounts,
         uint16[] memory _destChains,
@@ -171,7 +172,7 @@ contract SigmaForwarder {
                 _amounts,
                 _destChains,
                 deadline,
-                nonces[msg.sender]
+                nonces[from]
             )
         );
 
@@ -180,10 +181,9 @@ contract SigmaForwarder {
         );
 
         address signer = digest.recover(signature);
-        if (signer == address(0) || signer != msg.sender)
-            revert InvalidSignature();
+        if (signer == address(0) || signer != from) revert InvalidSignature();
 
-        nonces[msg.sender]++;
+        nonces[signer]++;
 
         for (uint256 i = 0; i < _destChains.length; i++) {
             if (_destChains[i] == WormHoleChainId) {
@@ -232,6 +232,7 @@ contract SigmaForwarder {
     function multiToSingleTransferToken(
         address SigmaUSDCVault,
         address _sigmaHop,
+        address from,
         address _to,
         uint256[] memory _amounts,
         uint16[] memory _srcChains,
@@ -267,15 +268,14 @@ contract SigmaForwarder {
         );
 
         address signer = digest.recover(signature);
-        if (signer == address(0) || signer != msg.sender)
-            revert InvalidSignature();
+        if (signer == address(0) || signer != from) revert InvalidSignature();
 
         bool isSrcChain = false;
 
         for (uint256 i = 0; i < _srcChains.length; i++) {
             if (_srcChains[i] == WormHoleChainId) {
-                if (_nonces[i] != nonces[msg.sender]) revert InvalidNonce();
-                nonces[msg.sender]++;
+                if (_nonces[i] != nonces[signer]) revert InvalidNonce();
+                nonces[signer]++;
 
                 ISigmaUSDCVault(SigmaUSDCVault).transferTokenCrossChain(
                     _sigmaHop,
