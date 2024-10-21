@@ -58,7 +58,7 @@ interface ISigmaUSDCVault {
         uint256 _amount,
         uint256 gasPrice,
         uint256 baseGas
-    ) external;
+    ) external payable;
 
     /// @notice Gets the USDC token address
     /// @return The IERC20 interface of the USDC token

@@ -92,7 +92,7 @@ contract SigmaUSDCVault is Singleton, StorageAccessible, Sigma2771Context {
         uint256 _amount,
         uint256 gasPrice,
         uint256 baseGas
-    ) public onlyTrustedForwarder {
+    ) public payable onlyTrustedForwarder {
         require(_signer == owner, "Caller is not the owner");
 
         uint256 startGas = gasleft();
@@ -102,9 +102,15 @@ contract SigmaUSDCVault is Singleton, StorageAccessible, Sigma2771Context {
             _destChain
         );
 
+        require(msg.value == hopFees, "Fund requirements not met");
+
         IERC20(USDCToken).approve(_sigmaHop, _amount);
 
-        ISigmaHop(_sigmaHop).sendCrossChainDeposit(_destChain, _to, _amount);
+        ISigmaHop(_sigmaHop).sendCrossChainDeposit{value: hopFees}(
+            _destChain,
+            _to,
+            _amount
+        );
 
         // Add Wormhole Fees
         chargeFees(

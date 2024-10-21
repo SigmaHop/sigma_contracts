@@ -3,6 +3,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../interfaces/ISigmaUSDCVault.sol";
+import "../interfaces/ISigmaHop.sol";
 
 contract SigmaForwarder {
     using ECDSA for bytes32;
@@ -155,7 +156,7 @@ contract SigmaForwarder {
         bytes memory signature,
         uint256 gasPrice,
         uint256 baseGas
-    ) external {
+    ) external payable {
         if (block.timestamp > deadline) revert ExpiredDeadline();
         if (_tos.length != _amounts.length || _tos.length != _destChains.length)
             revert InvalidArrayLengths();
@@ -196,7 +197,13 @@ contract SigmaForwarder {
                 );
                 emit TokenTransferredLocal(signer, _tos[i], _amounts[i]);
             } else {
-                ISigmaUSDCVault(SigmaUSDCVault).transferTokenCrossChain(
+                uint256 hopFees = ISigmaHop(_sigmaHop).quoteCrossChainDeposit(
+                    _destChains[i]
+                );
+
+                ISigmaUSDCVault(SigmaUSDCVault).transferTokenCrossChain{
+                    value: hopFees
+                }(
                     _sigmaHop,
                     signer,
                     _destChains[i],
@@ -205,6 +212,7 @@ contract SigmaForwarder {
                     gasPrice,
                     baseGas
                 );
+
                 emit TokenTransferredCrossChain(
                     signer,
                     _destChains[i],
@@ -242,7 +250,7 @@ contract SigmaForwarder {
         bytes memory signature,
         uint256 gasPrice,
         uint256 baseGas
-    ) external {
+    ) external payable {
         if (block.timestamp > deadline) revert ExpiredDeadline();
         if (_amounts.length != _srcChains.length) revert InvalidArrayLengths();
 
@@ -277,21 +285,40 @@ contract SigmaForwarder {
                 if (_nonces[i] != nonces[signer]) revert InvalidNonce();
                 nonces[signer]++;
 
-                ISigmaUSDCVault(SigmaUSDCVault).transferTokenCrossChain(
-                    _sigmaHop,
-                    signer,
-                    destChain,
-                    _to,
-                    _amounts[i],
-                    gasPrice,
-                    baseGas
-                );
-                emit TokenTransferredCrossChain(
-                    signer,
-                    destChain,
-                    _to,
-                    _amounts[i]
-                );
+                if (_srcChains[i] != destChain) {
+                    uint256 hopFees = ISigmaHop(_sigmaHop)
+                        .quoteCrossChainDeposit(destChain);
+
+                    ISigmaUSDCVault(SigmaUSDCVault).transferTokenCrossChain{
+                        value: hopFees
+                    }(
+                        _sigmaHop,
+                        signer,
+                        destChain,
+                        _to,
+                        _amounts[i],
+                        gasPrice,
+                        baseGas
+                    );
+
+                    emit TokenTransferredCrossChain(
+                        signer,
+                        destChain,
+                        _to,
+                        _amounts[i]
+                    );
+                } else {
+                    ISigmaUSDCVault(SigmaUSDCVault).transferToken(
+                        signer,
+                        _to,
+                        _amounts[i],
+                        gasPrice,
+                        baseGas
+                    );
+
+                    emit TokenTransferredLocal(signer, _to, _amounts[i]);
+                }
+
                 isSrcChain = true;
             }
         }
