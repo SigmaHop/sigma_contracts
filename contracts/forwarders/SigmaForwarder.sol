@@ -117,7 +117,10 @@ contract SigmaForwarder {
             abi.encodePacked("\x19\x01", domainSeparator, structHash)
         );
 
-        address signer = digest.recover(signature);
+        bytes32 messageHash = getEthSignedMessageHash(digest);
+
+        address signer = messageHash.recover(signature);
+
         if (signer == address(0) || signer != from) revert InvalidSignature();
 
         nonces[signer]++;
@@ -181,7 +184,10 @@ contract SigmaForwarder {
             abi.encodePacked("\x19\x01", domainSeparator, structHash)
         );
 
-        address signer = digest.recover(signature);
+        bytes32 messageHash = getEthSignedMessageHash(digest);
+
+        address signer = messageHash.recover(signature);
+
         if (signer == address(0) || signer != from) revert InvalidSignature();
 
         nonces[signer]++;
@@ -275,7 +281,10 @@ contract SigmaForwarder {
             abi.encodePacked("\x19\x01", domainSeparator, structHash)
         );
 
-        address signer = digest.recover(signature);
+        bytes32 messageHash = getEthSignedMessageHash(digest);
+
+        address signer = messageHash.recover(signature);
+
         if (signer == address(0) || signer != from) revert InvalidSignature();
 
         bool isSrcChain = false;
@@ -324,5 +333,21 @@ contract SigmaForwarder {
         }
 
         if (!isSrcChain) revert ChainNotInSourceChains();
+    }
+
+    /**
+     * @notice Get the hash to be signed by the signer
+     * @param messageHash The hash of the message
+     */
+    function getEthSignedMessageHash(
+        bytes32 messageHash
+    ) public pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encodePacked(
+                    "\x19Ethereum Signed Message:\n32",
+                    messageHash
+                )
+            );
     }
 }
