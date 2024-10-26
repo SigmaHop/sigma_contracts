@@ -46,7 +46,7 @@ contract SigmaForwarder {
     ) public view returns (bytes32) {
         if (_chainIds.length == 0) {
             bytes32 DOMAIN_TYPEHASH = keccak256(
-                "EIP712Domain(string name,string version,uint16 chainId,uint256 nonce)"
+                "EIP712Domain(string name,string version,uint16 chainId)"
             );
 
             return
@@ -55,13 +55,12 @@ contract SigmaForwarder {
                         DOMAIN_TYPEHASH,
                         keccak256(bytes(name)),
                         keccak256(bytes(Version)),
-                        WormHoleChainId,
-                        nonces[msg.sender]
+                        WormHoleChainId
                     )
                 );
         } else {
             bytes32 DOMAIN_TYPEHASH = keccak256(
-                "EIP712Domain(string name,string version,uint16[] chainIds,uint256 nonce)"
+                "EIP712Domain(string name,string version,uint16[] chainIds)"
             );
 
             return
@@ -70,8 +69,7 @@ contract SigmaForwarder {
                         DOMAIN_TYPEHASH,
                         keccak256(bytes(name)),
                         keccak256(bytes(Version)),
-                        _chainIds,
-                        nonces[msg.sender]
+                        _chainIds
                     )
                 );
         }

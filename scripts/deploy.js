@@ -12,16 +12,15 @@ async function main() {
   console.log("Deploying contracts with the account:", deployer.address);
 
   const contract = await hre.ethers.deployContract(
-    "SigmaHop",
+    "SigmaProxyFactory",
     [
-      "0xA3cF45939bD6260bcFe3D66bc73d60f19e49a8BB",
-      "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C",
-      "0xa9fb1b3009dcb79e2fe346c16a604b8fa8ae0a79",
-      "0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0",
+      "0xCa8cb572cA074851dFF02a9089f75C914da8d6e2",
       "0x5425890298aed601595a70ab815c96711a31bc65",
+      "0xD45C8C9C6d0994E3E8d5c891749C675ffaF2f481",
+      "0xDb1d125C9f7faE45d7CeE470d048670a85270f4D",
     ],
     {
-      gasLimit: 1000000,
+      gasLimit: 2000000,
     }
   );
 
