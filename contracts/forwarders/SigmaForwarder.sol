@@ -190,14 +190,17 @@ contract SigmaForwarder {
 
         nonces[signer]++;
 
+        uint256 totalGasPrice = gasPrice;
+        uint256 totalBaseGas = baseGas;
+
         for (uint256 i = 0; i < _destChains.length; i++) {
             if (_destChains[i] == WormHoleChainId) {
                 ISigmaUSDCVault(SigmaUSDCVault).transferToken(
                     signer,
                     _tos[i],
                     _amounts[i],
-                    gasPrice,
-                    baseGas
+                    totalGasPrice,
+                    totalBaseGas
                 );
                 emit TokenTransferredLocal(signer, _tos[i], _amounts[i]);
             } else {
@@ -213,8 +216,8 @@ contract SigmaForwarder {
                     _destChains[i],
                     _tos[i],
                     _amounts[i],
-                    gasPrice,
-                    baseGas
+                    totalGasPrice,
+                    totalBaseGas
                 );
 
                 emit TokenTransferredCrossChain(
@@ -223,6 +226,11 @@ contract SigmaForwarder {
                     _tos[i],
                     _amounts[i]
                 );
+            }
+
+            if (totalBaseGas > 0 && totalGasPrice > 0) {
+                totalBaseGas = 0;
+                totalGasPrice = 0;
             }
         }
     }

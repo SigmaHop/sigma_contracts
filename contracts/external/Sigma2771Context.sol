@@ -37,7 +37,7 @@ abstract contract Sigma2771Context is Context {
         uint256 wormholeFees
     ) internal {
         uint256 gasUsed = startGas - gasleft();
-        uint256 gasFee = ((gasUsed + baseGas) * gasPrice) + wormholeFees;
+        uint256 gasFee = ((gasUsed + baseGas + wormholeFees) * gasPrice);
 
         if (token != address(0)) {
             uint8 decimals = IERC20Metadata(token).decimals();
