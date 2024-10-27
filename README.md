@@ -1,4 +1,4 @@
-# SigmaHop - Frontend
+# SigmaHop - Contracts
 
 A seamless cross-chain USDC bridge powered by Wormhole & Circle's CCTP.
 
