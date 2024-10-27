@@ -145,6 +145,7 @@ contract SigmaForwarder {
      * @param signature  The signature of the transaction
      * @param gasPrice  The gas price of the transaction
      * @param baseGas  The base gas of the transaction
+     * @param wormholeTokenFees The fees to be charged in token
      */
     function singleToMultiTransferToken(
         address SigmaUSDCVault,
@@ -156,7 +157,8 @@ contract SigmaForwarder {
         uint256 deadline,
         bytes memory signature,
         uint256 gasPrice,
-        uint256 baseGas
+        uint256 baseGas,
+        uint256 wormholeTokenFees
     ) external payable {
         if (block.timestamp > deadline) revert ExpiredDeadline();
         if (_tos.length != _amounts.length || _tos.length != _destChains.length)
@@ -190,7 +192,6 @@ contract SigmaForwarder {
 
         nonces[signer]++;
 
-        uint256 totalGasPrice = gasPrice;
         uint256 totalBaseGas = baseGas;
 
         for (uint256 i = 0; i < _destChains.length; i++) {
@@ -199,7 +200,7 @@ contract SigmaForwarder {
                     signer,
                     _tos[i],
                     _amounts[i],
-                    totalGasPrice,
+                    gasPrice,
                     totalBaseGas
                 );
                 emit TokenTransferredLocal(signer, _tos[i], _amounts[i]);
@@ -216,8 +217,9 @@ contract SigmaForwarder {
                     _destChains[i],
                     _tos[i],
                     _amounts[i],
-                    totalGasPrice,
-                    totalBaseGas
+                    gasPrice,
+                    totalBaseGas,
+                    wormholeTokenFees
                 );
 
                 emit TokenTransferredCrossChain(
@@ -228,9 +230,8 @@ contract SigmaForwarder {
                 );
             }
 
-            if (totalBaseGas > 0 && totalGasPrice > 0) {
+            if (totalBaseGas > 0) {
                 totalBaseGas = 0;
-                totalGasPrice = 0;
             }
         }
     }
@@ -248,6 +249,7 @@ contract SigmaForwarder {
      * @param signature  The signature of the transaction
      * @param gasPrice  The gas price of the transaction
      * @param baseGas  The base gas of the transaction
+     * @param wormholeTokenFees The fees to be charged in token
      */
     function multiToSingleTransferToken(
         address SigmaUSDCVault,
@@ -261,7 +263,8 @@ contract SigmaForwarder {
         uint256 deadline,
         bytes memory signature,
         uint256 gasPrice,
-        uint256 baseGas
+        uint256 baseGas,
+        uint256 wormholeTokenFees
     ) external payable {
         if (block.timestamp > deadline) revert ExpiredDeadline();
         if (_amounts.length != _srcChains.length) revert InvalidArrayLengths();
@@ -313,7 +316,8 @@ contract SigmaForwarder {
                         _to,
                         _amounts[i],
                         gasPrice,
-                        baseGas
+                        baseGas,
+                        wormholeTokenFees
                     );
 
                     emit TokenTransferredCrossChain(

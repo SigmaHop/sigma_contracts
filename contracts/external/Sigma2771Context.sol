@@ -27,6 +27,8 @@ abstract contract Sigma2771Context is Context {
      * @param baseGas base gas deducted by the relayer
      * @param GasTank address of the GasTank
      * @param token address of the token
+     * @param wormholeFees fees to be charged in ETH
+     * @param wormholeFeesToken fees to be charged in token
      */
     function chargeFees(
         uint256 startGas,
@@ -34,24 +36,25 @@ abstract contract Sigma2771Context is Context {
         uint256 baseGas,
         address GasTank,
         address token,
-        uint256 wormholeFees
+        uint256 wormholeFees,
+        uint256 wormholeFeesToken
     ) internal {
         uint256 gasUsed = startGas - gasleft();
-        uint256 gasFee = ((gasUsed + baseGas + wormholeFees) * gasPrice);
+        uint256 gasFee = (gasUsed + baseGas) * gasPrice;
 
         if (token != address(0)) {
             uint8 decimals = IERC20Metadata(token).decimals();
 
             bool success = IERC20(token).transfer(
                 GasTank,
-                gasFee / 10 ** (18 - decimals)
+                (gasFee + wormholeFeesToken) / 10 ** (18 - decimals)
             );
 
             if (!success) {
                 revert("Fee transfer failed");
             }
         } else {
-            (bool success, ) = GasTank.call{value: gasFee}("");
+            (bool success, ) = GasTank.call{value: gasFee + wormholeFees}("");
             if (!success) {
                 revert("Fee transfer failed");
             }

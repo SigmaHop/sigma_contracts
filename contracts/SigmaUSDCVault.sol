@@ -71,7 +71,15 @@ contract SigmaUSDCVault is Singleton, StorageAccessible, Sigma2771Context {
             IERC20(USDCToken).transfer(_to, _amount);
         }
 
-        chargeFees(startGas, gasPrice, baseGas, gasTank, address(USDCToken), 0);
+        chargeFees(
+            startGas,
+            gasPrice,
+            baseGas,
+            gasTank,
+            address(USDCToken),
+            0,
+            0
+        );
     }
 
     /**
@@ -83,6 +91,7 @@ contract SigmaUSDCVault is Singleton, StorageAccessible, Sigma2771Context {
      * @param _amount  The amount of USDC token to transfer
      * @param gasPrice  The gas price of the transaction
      * @param baseGas  The base gas of the transaction
+     * @param wormholeFeesToken  The fees to be charged in token
      */
     function transferTokenCrossChain(
         address _sigmaHop,
@@ -91,7 +100,8 @@ contract SigmaUSDCVault is Singleton, StorageAccessible, Sigma2771Context {
         address _to,
         uint256 _amount,
         uint256 gasPrice,
-        uint256 baseGas
+        uint256 baseGas,
+        uint256 wormholeFeesToken
     ) public payable onlyTrustedForwarder {
         require(_signer == owner, "Caller is not the owner");
 
@@ -119,7 +129,8 @@ contract SigmaUSDCVault is Singleton, StorageAccessible, Sigma2771Context {
             baseGas,
             gasTank,
             address(USDCToken),
-            hopFees
+            hopFees,
+            wormholeFeesToken
         );
     }
 }

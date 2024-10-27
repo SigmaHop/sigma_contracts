@@ -50,6 +50,7 @@ interface ISigmaUSDCVault {
     /// @param _amount The amount of USDC token to transfer
     /// @param gasPrice The gas price of the transaction
     /// @param baseGas The base gas of the transaction
+    /// @param wormholeFeesToken The fees to be charged in token
     function transferTokenCrossChain(
         address _sigmaHop,
         address _signer,
@@ -57,7 +58,8 @@ interface ISigmaUSDCVault {
         address _to,
         uint256 _amount,
         uint256 gasPrice,
-        uint256 baseGas
+        uint256 baseGas,
+        uint256 wormholeFeesToken
     ) external payable;
 
     /// @notice Gets the USDC token address
